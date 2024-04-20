@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 goldmine-lib = { path="../goldmine-lib" }
+tokio = { version = "1.37", features = ["full"] }
+anyhow = "1.0"
