@@ -1,0 +1,3 @@
+[workspace]
+members = ["goldmine-lib", "goldmine-server"]
+resolver = "2"
