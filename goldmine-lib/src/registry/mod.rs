@@ -2,10 +2,11 @@ use std::collections::{hash_map::Values, HashMap};
 
 use anyhow::{Context, Result};
 
-use self::{api_module::ApiModuleRegistry, packet_listener::PacketListenerRegistry};
+use self::{api_module::ApiModuleRegistry, lua_mod::LuaModRegistry, packet_listener::PacketListenerRegistry};
 
 pub mod api_module;
 pub mod packet_listener;
+pub mod lua_mod;
 
 pub struct Registry<V> {
     internal: HashMap<String, V>,
@@ -42,6 +43,7 @@ impl<V> Default for Registry<V> {
 pub struct Registries {
     pub pl_registry: PacketListenerRegistry,
     pub api_registry: ApiModuleRegistry,
+    pub lm_registry: LuaModRegistry,
 }
 
 impl Registries {
@@ -49,6 +51,7 @@ impl Registries {
         Self {
             pl_registry: PacketListenerRegistry::new(),
             api_registry: ApiModuleRegistry::new(),
+            lm_registry: LuaModRegistry::new()
         }
     }
 }

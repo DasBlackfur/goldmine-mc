@@ -5,7 +5,7 @@ use data::ServerData;
 use mlua::Lua;
 use modded::{install_modded_require, module::goldmine_module};
 use packets::Packet;
-use parking_lot::{Mutex};
+use parking_lot::Mutex;
 use registry::Registries;
 use tokio::{sync::watch, task::JoinSet};
 
@@ -60,7 +60,7 @@ impl Server {
         let (pl_tx, _pl_rx) = watch::channel(Packet::NoOP);
         server_threads.spawn(tasks::packet_listener::packet_listener(self.clone(), pl_tx));
 
-        server_threads.join_next().await.map(|result| result?);
+        server_threads.join_next().await.map(|result| result.unwrap());
         Ok(())
     }
 }

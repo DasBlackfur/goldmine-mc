@@ -2,6 +2,7 @@ local gm = require("goldmine")
 
 local function listener(packet)
     print(packet)
+    return packet
 end
 
 gm.register_mod({name="example_mod", version=000_001_000})

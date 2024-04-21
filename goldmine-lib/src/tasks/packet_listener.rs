@@ -18,7 +18,7 @@ pub async fn packet_listener(server: Server, _sender: Sender<Packet>) -> Result<
                     let lua_lock = server.lua.lock();
                     let pl_callback: Function = lua_lock.registry_value(pl)?;
                     packet = lua_lock
-                        .from_value(pl_callback.call(lua_lock.create_ser_userdata(packet)?)?)?;
+                        .from_value(pl_callback.call(lua_lock.create_ser_userdata(packet)?).unwrap()).unwrap();
                 }
                 match packet {
                     Packet::CSPingConnections(ping_id) => {

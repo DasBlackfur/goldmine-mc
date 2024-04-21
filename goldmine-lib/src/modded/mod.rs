@@ -6,7 +6,7 @@ use parking_lot::Mutex;
 
 use crate::registry::Registries;
 
-pub type EventListener = RegistryKey;
+pub type LuaModValue = RegistryKey;
 
 pub mod module;
 
