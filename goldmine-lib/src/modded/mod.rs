@@ -1,5 +1,8 @@
+use std::{cell::RefCell, sync::Arc};
+
 use anyhow::Result;
 use mlua::{Function, Lua, RegistryKey, Table};
+use parking_lot::Mutex;
 
 use crate::registry::Registries;
 
@@ -7,12 +10,14 @@ pub type EventListener = RegistryKey;
 
 pub mod module;
 
-pub fn install_modded_require(lua: &Lua, registries: &Registries) -> Result<()> {
+pub struct Mod {}
+
+pub fn install_modded_require(lua: &Lua, registries: Arc<Mutex<RefCell<Registries>>>) -> Result<()> {
     let globals = lua.globals();
     let require_key = lua.create_registry_value(globals.get::<_, Function>("require")?)?;
-    let gm_module_key = lua.registry_value(registries.api_registry.get("goldmine")?)?;
+    let gm_module_key = lua.registry_value(registries.lock().borrow().api_registry.get("goldmine")?)?;
 
-    let rust_require = lua.create_function(move |lua, name:String| {
+    let rust_require = lua.create_function(move |lua, name: String| {
         if name == "goldmine" {
             Ok(lua.registry_value::<Table>(&gm_module_key)?)
         } else {
