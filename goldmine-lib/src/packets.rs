@@ -13,7 +13,11 @@ pub enum Packet {
     SCPingOpenConnections(u64, u64, String),
 }
 
-impl UserData for Packet {}
+impl UserData for Packet {
+    fn add_methods<'lua, M: mlua::prelude::LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+        methods.add_method("toString", |_, packet, ()| Ok(format!("{:?}", packet)))
+    }
+}
 
 impl Packet {
     pub fn from_bytes(bytes: &[u8]) -> Result<Self> {

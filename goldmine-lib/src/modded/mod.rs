@@ -12,10 +12,14 @@ pub mod module;
 
 pub struct Mod {}
 
-pub fn install_modded_require(lua: &Lua, registries: Arc<Mutex<RefCell<Registries>>>) -> Result<()> {
+pub fn install_modded_require(
+    lua: &Lua,
+    registries: Arc<Mutex<RefCell<Registries>>>,
+) -> Result<()> {
     let globals = lua.globals();
     let require_key = lua.create_registry_value(globals.get::<_, Function>("require")?)?;
-    let gm_module_key = lua.registry_value(registries.lock().borrow().api_registry.get("goldmine")?)?;
+    let gm_module_key =
+        lua.registry_value(registries.lock().borrow().api_registry.get("goldmine")?)?;
 
     let rust_require = lua.create_function(move |lua, name: String| {
         if name == "goldmine" {

@@ -1,6 +1,7 @@
 type internal_Registry = {
     pl_registry: Registry?,
-    api_regsitry: Registry?
+    api_registry: Registry?,
+    lm_registry: Registry?
 }
 
 local registry: internal_Registry = {}

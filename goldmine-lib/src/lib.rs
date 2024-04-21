@@ -1,4 +1,4 @@
-use std::{cell::RefCell, fs::File, io::Read, sync::Arc};
+use std::{cell::RefCell, fs::File, future, io::Read, sync::Arc};
 
 use anyhow::{Ok, Result};
 use data::ServerData;
@@ -56,11 +56,12 @@ impl Server {
     }
 
     pub async fn execute(&mut self) -> Result<()> {
-        let mut server_threads = JoinSet::new();
         let (pl_tx, _pl_rx) = watch::channel(Packet::NoOP);
-        server_threads.spawn(tasks::packet_listener::packet_listener(self.clone(), pl_tx));
+        let pl_task =
+            tokio::task::spawn(tasks::packet_listener::packet_listener(self.clone(), pl_tx));
+        let other_task = tokio::task::spawn(async {});
 
-        server_threads.join_next().await.map(|result| result.unwrap());
+        tokio::join!(pl_task, other_task).0??;
         Ok(())
     }
 }
