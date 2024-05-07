@@ -2,10 +2,11 @@ use anyhow::{Context, Error, Result};
 use mlua::UserData;
 use serde::{Deserialize, Serialize};
 
-use crate::{game_packets::GamePacket, u24::u24};
-
-pub const MAGIC: [u8; 16] = 0x00ffff00fefefefefdfdfdfd12345678_u128.to_be_bytes();
-pub const RAKNET_VERSION: u8 = 120;
+use crate::{
+    constants::{MAGIC, OUT_OF_DATA},
+    game_packets::GamePacket,
+    u24::u24,
+};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum Packet {
@@ -39,29 +40,18 @@ impl Packet {
         let packet_id = bytes.first().context("Packet doesn't contain an ID")?;
         match packet_id {
             0x02 => Ok(Self::CSPingConnections(u64::from_be_bytes(
-                bytes
-                    .get(1..=8)
-                    .context("Not enough data in packet")?
-                    .try_into()?,
+                bytes.get(1..=8).context(OUT_OF_DATA)?.try_into()?,
             ))),
             0x05 => Ok(Self::CSConnectionRequest1(
-                *bytes.get(16).context("Not enough data in packet")?,
+                *bytes.get(16).context(OUT_OF_DATA)?,
                 bytes.len(),
             )),
             0x07 => Ok(Self::CSConnectionRequest2(u16::from_be_bytes(
-                bytes
-                    .get(24..=25)
-                    .context("Not enough data in packet")?
-                    .try_into()?,
+                bytes.get(24..=25).context(OUT_OF_DATA)?.try_into()?,
             ))),
             0x80..=0x8F => Ok(Self::Encapsulated(
-                u24::from_be_bytes(
-                    bytes
-                        .get(1..=3)
-                        .context("Not enough data in packet")?
-                        .try_into()?,
-                ),
-                GamePacket::NoOP,
+                u24::from_be_bytes(bytes.get(2..=4).context(OUT_OF_DATA)?.try_into()?),
+                GamePacket::from_bytes(bytes)?,
             )),
             _ => Err(Error::msg(format!("No packet with ID {:x}", packet_id))),
         }
@@ -100,6 +90,12 @@ impl Packet {
                 packet.extend_from_slice(&udp_port.to_be_bytes());
                 packet.extend_from_slice(&mtu_size.to_be_bytes());
                 packet.extend_from_slice(&[0]);
+                packet
+            }),
+            Packet::Encapsulated(count, game_packet) => Ok({
+                let mut packet: Vec<u8> = vec![0x10];
+                packet.extend_from_slice(&count.to_be_bytes());
+                packet.extend_from_slice(&game_packet.as_bytes()?);
                 packet
             }),
             _ => Err(Error::msg(format!(

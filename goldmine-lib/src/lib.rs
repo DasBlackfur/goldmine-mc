@@ -10,6 +10,7 @@ use registry::Registries;
 use tokio::sync::watch;
 
 pub mod blocks;
+pub mod constants;
 pub mod data;
 pub mod game_packets;
 pub mod modded;

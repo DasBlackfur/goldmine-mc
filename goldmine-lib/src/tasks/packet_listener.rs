@@ -5,7 +5,8 @@ use mlua::Function;
 use mlua::LuaSerdeExt;
 use tokio::{net::UdpSocket, sync::watch::Sender};
 
-use crate::packets::RAKNET_VERSION;
+use crate::constants::RAKNET_VERSION;
+use crate::game_packets::GamePacket;
 use crate::{packets::Packet, Server};
 
 pub async fn packet_listener(server: Server, _sender: Sender<Packet>) -> Result<()> {
@@ -13,8 +14,8 @@ pub async fn packet_listener(server: Server, _sender: Sender<Packet>) -> Result<
     let mut buffer = [0; 1024];
 
     loop {
-        let (_len, sender_addr) = socket.recv_from(&mut buffer).await?;
-        let packet = receive_packet(&buffer, &server)?;
+        let (len, sender_addr) = socket.recv_from(&mut buffer).await?;
+        let packet = receive_packet(&buffer[..len], &server)?;
         if let Some(return_packet) = handle_packet(packet, &server, &sender_addr)? {
             send_packet(&socket, sender_addr, return_packet, &server).await?;
         }
@@ -22,6 +23,7 @@ pub async fn packet_listener(server: Server, _sender: Sender<Packet>) -> Result<
 }
 
 fn receive_packet(buffer: &[u8], server: &Server) -> Result<Packet> {
+    println!("{:x?}", buffer);
     let mut packet = Packet::from_bytes(buffer)?;
     packet = execute_pl_callbacks(packet, server)?;
     Ok(packet)
@@ -34,6 +36,7 @@ async fn send_packet(
     server: &Server,
 ) -> Result<()> {
     packet = execute_pl_callbacks(packet, server)?;
+    println!("{:x?}", &packet.as_bytes()?);
     socket.send_to(&packet.as_bytes()?, addr).await?;
     Ok(())
 }
@@ -77,7 +80,24 @@ fn handle_packet(
             sender_addr.port(),
             mtu_size,
         )),
+        Packet::Encapsulated(count, game_packet) => {
+            handle_game_packet(game_packet, server, sender_addr)?
+                .map(|game_return_packet| Packet::Encapsulated(count, game_return_packet))
+        }
         _ => unreachable!(),
     };
+    Ok(return_packet)
+}
+
+fn handle_game_packet(
+    packet: GamePacket,
+    server: &Server,
+    sender_addr: &SocketAddr,
+) -> Result<Option<GamePacket>> {
+    let return_packet = match packet {
+        GamePacket::CSClientConnect(session_id) => Some(GamePacket::SCServerHandshake(session_id)),
+        _ => unreachable!(),
+    };
+
     Ok(return_packet)
 }
