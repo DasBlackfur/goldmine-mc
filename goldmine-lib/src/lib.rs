@@ -59,7 +59,7 @@ impl Server {
     }
 
     pub async fn execute(&mut self) -> Result<()> {
-        let (pl_tx, _pl_rx) = watch::channel(Packet::NoOP);
+        let (pl_tx, _pl_rx) = watch::channel("".to_owned());
         let pl_task =
             tokio::task::spawn(tasks::packet_listener::packet_listener(self.clone(), pl_tx));
         let other_task = tokio::task::spawn(async {});
