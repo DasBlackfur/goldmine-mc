@@ -1,7 +1,7 @@
 local gm = require("goldmine")
 
 local function listener(packet)
-    print(packet:toString())
+    ---print(packet:toString())
     return packet
 end
 

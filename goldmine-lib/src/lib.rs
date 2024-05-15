@@ -1,10 +1,9 @@
-use std::{cell::RefCell, fs::File, future, io::Read, sync::Arc};
+use std::{cell::RefCell, fs::File, io::Read, net::SocketAddr, sync::Arc};
 
 use anyhow::{Ok, Result};
 use data::ServerData;
 use mlua::Lua;
 use modded::{install_modded_require, module::goldmine_module};
-use packets::Packet;
 use parking_lot::Mutex;
 use registry::Registries;
 use tokio::sync::watch;
@@ -24,7 +23,7 @@ pub struct Server {
     data: Arc<Mutex<RefCell<ServerData>>>,
     lua: Arc<Mutex<Lua>>,
     registries: Arc<Mutex<RefCell<Registries>>>,
-    addr: String,
+    addr: SocketAddr,
     server_name: String,
     guid: u64,
 }
@@ -50,8 +49,8 @@ impl Server {
             data: Arc::new(Mutex::new(RefCell::new(ServerData::default()))),
             lua: Arc::new(Mutex::new(lua)),
             registries,
-            addr: addr.to_owned(),
-            server_name: "A GoldMineMC server!".to_owned(),
+            addr: addr.parse()?,
+            server_name: "MCCPP;Demo;A GoldMineMC server!".to_owned(),
             guid: rand::random(),
         };
 

@@ -1,85 +1,87 @@
-use anyhow::{Context, Error, Result};
+use declio::{ctx, Decode, Encode};
 use serde::{Deserialize, Serialize};
 
-use crate::constants::{HANDSHAKE_DATA, OUT_OF_DATA};
+use crate::{
+    constants::{
+        HANDSHAKE_COOKIE, HANDSHAKE_DATA, HANDSHAKE_DOUBLE_NULL, HANDSHAKE_FLAGS, HANDSHAKE_UNKNOWN,
+    },
+    u24::u24,
+};
 
-#[derive(Serialize, Deserialize, Debug)]
-pub enum EncapsulationType {
-    Simple,
-    ExtendedCount,
-    ExtendedFull,
+#[derive(Serialize, Deserialize, Debug, Encode, Decode)]
+#[declio(id_type = "u8")]
+pub enum Encapsulation {
+    #[declio(id = "0x00")]
+    Simple {
+        #[declio(ctx = "ctx::Endian::Big")]
+        length: u16,
+        #[declio(ctx = "ctx::Len((length/8).into())")]
+        game_packet: Vec<u8>,
+    },
+    #[declio(id = "0x40")]
+    ExtendedCount {
+        #[declio(ctx = "ctx::Endian::Big")]
+        length: u16,
+        #[declio(ctx = "ctx::Endian::Little")]
+        count: u24,
+        #[declio(ctx = "ctx::Len((length/8).into())")]
+        game_packet: Vec<u8>,
+    },
+    #[declio(id = "0x60")]
+    ExtendedFull {
+        #[declio(ctx = "ctx::Endian::Big")]
+        length: u16,
+        #[declio(ctx = "ctx::Endian::Little")]
+        count: u24,
+        unknown: [u8; 4],
+        #[declio(ctx = "ctx::Len((length/8).into())")]
+        game_packet: Vec<u8>,
+    },
 }
 
-impl EncapsulationType {
-    pub fn from_byte(byte: u8) -> Result<Self> {
-        match byte {
-            0x00 => Ok(Self::Simple),
-            0x40 => Ok(Self::ExtendedCount),
-            0x60 => Ok(Self::ExtendedFull),
-            t => Err(Error::msg(format!("Unknown encapsulation type: {:x}", t))),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub enum GamePacket {
-    NoOP,
-    /// session_id
-    CSClientConnect(u64),
-    /// session_id
-    SCServerHandshake(u64),
-}
-
-impl GamePacket {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
-        let enc_type =
-            EncapsulationType::from_byte(*bytes.get(4).context("Not enough data in  packet")?)?;
-        println!("{:?}", enc_type);
-        let mut game_bytes = Vec::new();
-        match enc_type {
-            EncapsulationType::Simple => {
-                game_bytes.extend_from_slice(bytes.get(7..).context(OUT_OF_DATA)?)
-            }
-            EncapsulationType::ExtendedCount => {
-                game_bytes.extend_from_slice(bytes.get(10..).context(OUT_OF_DATA)?)
-            }
-            EncapsulationType::ExtendedFull => {
-                game_bytes.extend_from_slice(bytes.get(14..).context(OUT_OF_DATA)?)
-            }
-        }
-        let packet_id = game_bytes.first().context("Packet doesn't contain an ID")?;
-        match packet_id {
-            0x09 => Ok(Self::CSClientConnect(u64::from_be_bytes(
-                game_bytes.get(9..=16).context(OUT_OF_DATA)?.try_into()?,
-            ))),
-            _ => Err(Error::msg(format!(
-                "No game packet with ID {:x}",
-                packet_id
-            ))),
-        }
-    }
-
-    pub fn as_bytes(&self) -> Result<Vec<u8>> {
-        let mut packet: Vec<u8> = vec![0x00, 0xff, 0xff];
+impl Encapsulation {
+    pub fn to_game_packet(self) -> Vec<u8> {
         match self {
-            Self::SCServerHandshake(session_id) => Ok({
-                packet.extend_from_slice(&[0x10]);
-                packet.extend_from_slice(&[0x04, 0x3f, 0x57, 0xfe]);
-                packet.extend_from_slice(&[0xcd]);
-                packet.extend_from_slice(&[0x00; 2]);
-                packet.extend_from_slice(&HANDSHAKE_DATA);
-                packet.extend_from_slice(&[0x00; 2]);
-                packet.extend_from_slice(&session_id.to_be_bytes());
-                packet.extend_from_slice(&[0x00, 0x00, 0x00, 0x00, 0x04, 0x44, 0x0b, 0xa9]);
-                let len = (((packet.len() - 3) * 2) as u16).to_be_bytes();
-                packet[1] = len[0];
-                packet[2] = len[1];
-                packet
-            }),
-            _ => Err(Error::msg(format!(
-                "Game-packet {:?} can't be sent from the server",
-                self
-            ))),
+            Encapsulation::Simple {
+                length: _,
+                game_packet,
+            } => game_packet,
+            Encapsulation::ExtendedCount {
+                length: _,
+                count: _,
+                game_packet,
+            } => game_packet,
+            Encapsulation::ExtendedFull {
+                length: _,
+                count: _,
+                unknown: _,
+                game_packet,
+            } => game_packet,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Encode, Decode)]
+#[declio(id_type = "u8")]
+pub enum GamePacket {
+    #[declio(id = "0x09")]
+    CSClientConnect {
+        #[declio(ctx = "ctx::Endian::Big")]
+        client_id: u64,
+        #[declio(ctx = "ctx::Endian::Big")]
+        session: u64,
+        unknown: u8,
+    },
+    #[declio(id = "0x10")]
+    SCServerHandshake {
+        cookie: HANDSHAKE_COOKIE,
+        flags: HANDSHAKE_FLAGS,
+        #[declio(ctx = "ctx::Endian::Big")]
+        server_port: u16,
+        data: HANDSHAKE_DATA,
+        unknown1: HANDSHAKE_DOUBLE_NULL,
+        #[declio(ctx = "ctx::Endian::Big")]
+        session: u64,
+        unknown2: HANDSHAKE_UNKNOWN,
+    },
 }
