@@ -2,6 +2,8 @@
 use declio::magic_bytes;
 use serde::{Deserialize, Serialize};
 
+pub const SERVER_VERSION: u32 = 9;
+
 magic_bytes! {
     #[derive(Serialize, Deserialize, Debug)]
     pub MAGIC(&0x00ffff00fefefefefdfdfdfd12345678_u128.to_be_bytes());

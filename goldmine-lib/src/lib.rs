@@ -12,6 +12,7 @@ pub mod blocks;
 pub mod constants;
 pub mod data;
 pub mod game_packets;
+pub mod logic;
 pub mod modded;
 pub mod packets;
 pub mod registry;
@@ -53,6 +54,10 @@ impl Server {
             server_name: "MCCPP;Demo;A GoldMineMC server!".to_owned(),
             guid: rand::random(),
         };
+
+        {
+            server.data.lock().borrow_mut().gamemode = 1;
+        }
 
         Ok(server)
     }

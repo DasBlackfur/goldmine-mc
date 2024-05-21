@@ -4,26 +4,28 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct ServerData {
-    entities: Vec<EntityData>,
-    inventories: HashMap<u32, Inventory>,
+    pub seed: u32,
+    pub gamemode: u32,
+    pub entities: Vec<EntityData>,
+    pub inventories: HashMap<u32, Inventory>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct EntityData {
-    id: u32,
-    pos: Vec3,
-    rot: Vec3,
+    pub id: u32,
+    pub pos: Vec3,
+    pub rot: Vec3,
 }
 
-pub type Vec3 = (f64, f64, f64);
+pub type Vec3 = (f32, f32, f32);
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct Inventory {
-    items: Vec<Item>,
+    pub items: Vec<Item>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Item {
-    id: u32,
-    count: u32,
+    pub id: u32,
+    pub count: u32,
 }
