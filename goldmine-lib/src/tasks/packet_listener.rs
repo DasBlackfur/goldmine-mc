@@ -90,7 +90,7 @@ async fn send_packet(
 }
 
 fn execute_pl_callbacks(mut packet: Packet, server: &Server) -> Result<Packet> {
-    for pl in server.registries.lock().borrow().pl_registry.values() {
+    for pl in server.registries.lock().pl_registry.values() {
         let lua_lock = server.lua.lock();
         let pl_callback: Function = lua_lock.registry_value(pl)?;
         packet = lua_lock.from_value(pl_callback.call(lua_lock.create_ser_userdata(packet)?)?)?;

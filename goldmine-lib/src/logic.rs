@@ -7,15 +7,15 @@ impl Server {
             pos: (0.0, 0.0, 0.0),
             rot: (0.0, 0.0, 0.0),
         };
-        self.data.lock().borrow_mut().entities.push(player.clone());
+        self.data.lock().entities.push(player.clone());
         player
     }
 
     pub fn get_seed(&self) -> u32 {
-        self.data.lock().borrow().seed
+        self.data.lock().seed
     }
 
     pub fn get_gamemode(&self) -> u32 {
-        self.data.lock().borrow().gamemode
+        self.data.lock().gamemode
     }
 }

@@ -1,6 +1,6 @@
 local gm_module = {}
 
-local registry = require("goldmine/registry")
+local registry = require("@goldmine/registry")
 gm_module.registry = registry
 
 export type Mod = {name: string, version: number}

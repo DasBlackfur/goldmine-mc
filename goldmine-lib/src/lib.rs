@@ -1,4 +1,4 @@
-use std::{cell::RefCell, fs::File, io::Read, net::SocketAddr, sync::Arc};
+use std::{fs::File, io::Read, net::SocketAddr, sync::Arc};
 
 use anyhow::{Ok, Result};
 use data::ServerData;
@@ -21,9 +21,9 @@ pub mod u24;
 
 #[derive(Clone)]
 pub struct Server {
-    data: Arc<Mutex<RefCell<ServerData>>>,
+    data: Arc<Mutex<ServerData>>,
     lua: Arc<Mutex<Lua>>,
-    registries: Arc<Mutex<RefCell<Registries>>>,
+    registries: Arc<Mutex<Registries>>,
     addr: SocketAddr,
     server_name: String,
     guid: u64,
@@ -32,11 +32,10 @@ pub struct Server {
 impl Server {
     pub fn new(addr: &str, mod_path: &str) -> Result<Server> {
         let lua = Lua::new();
-        let registries = Arc::new(Mutex::new(RefCell::new(Registries::default())));
+        let registries = Arc::new(Mutex::new(Registries::default()));
 
         registries
             .lock()
-            .borrow_mut()
             .api_registry
             .register("goldmine", goldmine_module(&lua, registries.clone())?);
 
@@ -47,7 +46,7 @@ impl Server {
         lua.load(mod_string).set_name(mod_path).exec()?;
 
         let server = Server {
-            data: Arc::new(Mutex::new(RefCell::new(ServerData::default()))),
+            data: Arc::new(Mutex::new(ServerData::default())),
             lua: Arc::new(Mutex::new(lua)),
             registries,
             addr: addr.parse()?,
@@ -56,7 +55,7 @@ impl Server {
         };
 
         {
-            server.data.lock().borrow_mut().gamemode = 1;
+            server.data.lock().gamemode = 1;
         }
 
         Ok(server)

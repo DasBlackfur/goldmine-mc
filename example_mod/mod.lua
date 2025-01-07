@@ -1,4 +1,4 @@
-local gm = require("goldmine")
+local gm = require("@goldmine")
 
 local function listener(packet)
     ---print(packet:toString())

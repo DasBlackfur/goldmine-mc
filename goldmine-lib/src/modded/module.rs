@@ -1,4 +1,4 @@
-use std::{cell::RefCell, sync::Arc};
+use std::sync::Arc;
 
 use anyhow::Result;
 use mlua::{
@@ -11,7 +11,7 @@ use crate::registry::Registries;
 
 pub fn goldmine_module(
     lua: &Lua,
-    registries: Arc<Mutex<RefCell<Registries>>>,
+    registries: Arc<Mutex<Registries>>,
 ) -> Result<RegistryKey> {
     let gm_module = lua.create_table()?;
 
@@ -21,7 +21,6 @@ pub fn goldmine_module(
         let new_mod = lua.create_registry_value(lua_mod)?;
         registry_handle
             .lock()
-            .borrow_mut()
             .lm_registry
             .register(&mod_name, new_mod);
 
@@ -34,7 +33,7 @@ pub fn goldmine_module(
     Ok(lua.create_registry_value(gm_module)?)
 }
 
-fn registry_module(lua: &Lua, registries: Arc<Mutex<RefCell<Registries>>>) -> Result<Table> {
+fn registry_module(lua: &Lua, registries: Arc<Mutex<Registries>>) -> Result<Table> {
     let registry_module = lua.create_table()?;
 
     registry_module.set(
@@ -55,7 +54,7 @@ fn registry_module(lua: &Lua, registries: Arc<Mutex<RefCell<Registries>>>) -> Re
 
 fn registry_functions(
     lua: &Lua,
-    registries: Arc<Mutex<RefCell<Registries>>>,
+    registries: Arc<Mutex<Registries>>,
     registry_name: String,
 ) -> Result<Table<'_>> {
     let registry_table = lua.create_table()?;
@@ -64,7 +63,7 @@ fn registry_functions(
     let registry_handle = registries.clone();
     let register_func = lua.create_function(move |lua, args: (String, Value)| {
         let registries_lock = registry_handle.lock();
-        let mut registries_handle = registries_lock.borrow_mut();
+        let mut registries_handle = registries_lock;
         let registry = match registry_name_internal.as_str() {
             "pl_registry" => Some(&mut registries_handle.pl_registry),
             "lm_registry" => Some(&mut registries_handle.lm_registry),
@@ -81,7 +80,7 @@ fn registry_functions(
     let registry_handle = registries.clone();
     let get_func = lua.create_function(move |lua, arg: String| {
         let registries_lock = registry_handle.lock();
-        let registries_handle = registries_lock.borrow();
+        let registries_handle = registries_lock;
         let registry = match registry_name_internal.as_str() {
             "pl_registry" => Some(&registries_handle.pl_registry),
             "lm_registry" => Some(&registries_handle.lm_registry),
@@ -98,7 +97,7 @@ fn registry_functions(
     let registry_handle = registries.clone();
     let values_func = lua.create_function(move |lua, ()| {
         let registries_lock = registry_handle.lock();
-        let registries_handle = registries_lock.borrow_mut();
+        let registries_handle = registries_lock;
         let registry = match registry_name.as_str() {
             "pl_registry" => Some(&registries_handle.pl_registry),
             "lm_registry" => Some(&registries_handle.lm_registry),
