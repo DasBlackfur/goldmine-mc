@@ -128,7 +128,7 @@ mod encapsulation {
 }
 
 impl UserData for Packet {
-    fn add_methods<'lua, M: mlua::prelude::LuaUserDataMethods<'lua, Self>>(methods: &mut M) {
+    fn add_methods<M: mlua::prelude::LuaUserDataMethods<Self>>(methods: &mut M) {
         methods.add_method("toString", |_, packet, ()| Ok(format!("{:x?}", packet)))
     }
 }

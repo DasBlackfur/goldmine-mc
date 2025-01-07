@@ -56,7 +56,7 @@ fn registry_functions(
     lua: &Lua,
     registries: Arc<Mutex<Registries>>,
     registry_name: String,
-) -> Result<Table<'_>> {
+) -> Result<Table> {
     let registry_table = lua.create_table()?;
 
     let registry_name_internal = registry_name.clone();
