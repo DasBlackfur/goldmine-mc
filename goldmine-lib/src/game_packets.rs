@@ -407,8 +407,9 @@ pub enum GamePacket {
         #[declio(ctx = "ctx::Endian::Big")]
         index_z: u32,
         #[declio(ctx = "ctx::Endian::Big")]
-        chunk_data: [u8; 49408], // The format is a bit confusing, probably needs a custom datatype to en/decode
-    }
+        chunk_data: u8, // The format is a bit confusing, probably needs a custom datatype to en/decode
+        // Rust doesnt let me compile [u8; 49408], so this is u8 for now
+    },
     // PlayerEquipmentPacket
     #[declio(id = "0xa0")]
     PlayerArmorEquipment {
