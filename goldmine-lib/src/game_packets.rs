@@ -330,7 +330,7 @@ pub enum GamePacket {
         pos_y: u8,
     },
     #[declio(id = "0x97")]
-    UpdateBlock {
+    SCUpdateBlock {
         #[declio(ctx = "ctx::Endian::Big")]
         pos_x: u32,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -343,7 +343,7 @@ pub enum GamePacket {
         block_aux: u8,
     },
     #[declio(id = "0x98")]
-    AddPainting {
+    SCAddPainting {
         #[declio(ctx = "ctx::Endian::Big")]
         entity_id: u32,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -361,7 +361,7 @@ pub enum GamePacket {
     },
     // ExplodePacket
     #[declio(id = "0x9a")]
-    LevelEvent {
+    SCLevelEvent {
         #[declio(ctx = "ctx::Endian::Big")]
         event_id: u32,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -374,7 +374,7 @@ pub enum GamePacket {
         data: u32,
     },
     #[declio(id = "0x9b")]
-    TileEvent {
+    SCTileEvent {
         #[declio(ctx = "ctx::Endian::Big")]
         pos_x: u32,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -394,14 +394,14 @@ pub enum GamePacket {
         event: u8, // TODO: Reverse engineer what this is
     },
     #[declio(id = "0x9d")]
-    RequestChunk {
+    CSRequestChunk {
         #[declio(ctx = "ctx::Endian::Big")]
         index_x: u32,
         #[declio(ctx = "ctx::Endian::Big")]
         index_z: u32,
     },
     #[declio(id = "0x9e")]
-    ChunkDataPacket {
+    SCChunkDataPacket {
         #[declio(ctx = "ctx::Endian::Big")]
         index_x: u32,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -435,7 +435,7 @@ pub enum GamePacket {
     },
     // UseItemPacket
     #[declio(id = "0xa3")]
-    PlayerAction {
+    CSPlayerAction {
         #[declio(ctx = "ctx::Endian::Big")]
         action: u32,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -450,18 +450,18 @@ pub enum GamePacket {
         entity_id: u32,
     },
     #[declio(id = "0xa5")]
-    HurtArmor {
+    SCHurtArmor {
         #[declio(ctx = "ctx::Endian::Big")]
         health: u8,
     },
     #[declio(id = "0xa6")]
-    SetEntityData {
+    SCSetEntityData {
         #[declio(ctx = "ctx::Endian::Big")]
         entity_id: u32,
         metadata: u8
     },
     #[declio(id = "0xa7")]
-    SetEntityMotion {
+    SCSetEntityMotion {
         #[declio(ctx = "ctx::Endian::Big")]
         entity_id: u32,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -472,12 +472,12 @@ pub enum GamePacket {
         speed_z: u32,
     },
     #[declio(id = "0xa8")]
-    SetHealth {
+    SCSetHealth {
         #[declio(ctx = "ctx::Endian::Big")]
         health: u8,
     },
     #[declio(id = "0xa9")]
-    SetSpawnPosition {
+    SCSetSpawnPosition {
         #[declio(ctx = "ctx::Endian::Big")]
         pos_x: u32,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -505,7 +505,7 @@ pub enum GamePacket {
     },
     // SendInventoryPacket
     #[declio(id = "0xad")]
-    DropItem {
+    CSDropItem {
         #[declio(ctx = "ctx::Endian::Big")]
         entity_id: u32,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -518,7 +518,7 @@ pub enum GamePacket {
         item_data: u16,
     },
     #[declio(id = "0xae")]
-    ContainerOpen {
+    SCContainerOpen {
         #[declio(ctx = "ctx::Endian::Big")]
         window_id: u8,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -537,7 +537,7 @@ pub enum GamePacket {
     },
     // ContainerSetSlotPacket
     #[declio(id = "0xb1")]
-    ContainerSetData {
+    SCContainerSetData {
         #[declio(ctx = "ctx::Endian::Big")]
         window_id: u8,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -548,7 +548,7 @@ pub enum GamePacket {
     // ContainerSetContentPacket
     // ContainerAckPacket
     #[declio(id = "0xb4")]
-    Chat {
+    CSChat {
         #[declio(ctx = "ctx::Endian::Big")]
         message_len: u16,
         #[declio(with = "util::utf8", ctx = "ctx::Len((*message_len).into())")]
@@ -557,15 +557,27 @@ pub enum GamePacket {
     #[declio(id = "0xb5")]
     SignUpdate {
         #[declio(ctx = "ctx::Endian::Big")]
-        pos_x: u32,
+        pos_x: u16,
         #[declio(ctx = "ctx::Endian::Big")]
         pos_y: u8,
         #[declio(ctx = "ctx::Endian::Big")]
-        pos_z: u32,
-        #[declio(ctx = "ctx::Endian::Big")]
-        lines_len: u16,
-        #[declio(with = "util::utf8", ctx = "ctx::Len((*lines_len).into())")]
-        lines: String,
+        pos_z: u16,
+        #[declio(ctx = "ctx::Endian::Little")]
+        line_1_len: u16,
+        #[declio(with = "util::utf8", ctx = "ctx::Len((*line_1_len).into())")]
+        line_1: String,
+        #[declio(ctx = "ctx::Endian::Little")]
+        line_2_len: u16,
+        #[declio(with = "util::utf8", ctx = "ctx::Len((*line_2_len).into())")]
+        line_2: String,
+        #[declio(ctx = "ctx::Endian::Little")]
+        line_3_len: u16,
+        #[declio(with = "util::utf8", ctx = "ctx::Len((*line_3_len).into())")]
+        line_3: String,
+        #[declio(ctx = "ctx::Endian::Little")]
+        line_4_len: u16,
+        #[declio(with = "util::utf8", ctx = "ctx::Len((*line_4_len).into())")]
+        line_4: String,
     },
     // AdventureSettingsPacket
 }
