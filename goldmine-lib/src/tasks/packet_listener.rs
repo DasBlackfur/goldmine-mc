@@ -201,7 +201,7 @@ fn handle_game_packet(game_packet: GamePacket, server: &Server) -> Result<Option
             let player = server.add_player();
             let start_game = GamePacket::SCStartGame {
                 seed: server.get_seed(),
-                unknown: [0; 4],
+                worldgen_version: 0,
                 gamemode: server.get_gamemode(),
                 entity_id: player.id,
                 pos_x: player.pos.0,
