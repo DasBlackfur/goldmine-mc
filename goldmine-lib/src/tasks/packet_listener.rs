@@ -40,12 +40,12 @@ fn get_connection_id(server: &Server, sender_addr: &SocketAddr) -> Result<u64> {
         let mut counter = server.unique_connection_id.lock();
         connection_id = *counter;
         *counter += 1;
-        println!("New connection id {}", connection_id);
+        //println!("New connection id {}", connection_id);
         connections.insert(*sender_addr, connection_id);
     } else {
         if let Some(id) = connections.get_by_left(&sender_addr) {
             connection_id = *id;
-            println!("Existing connection id {}", connection_id);
+            //println!("Existing connection id {}", connection_id);
         } else {
             panic!("This should never execute. What did you do?!?");
         }
