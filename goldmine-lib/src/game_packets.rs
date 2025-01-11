@@ -119,11 +119,29 @@ pub enum GamePacket {
         #[declio(ctx = "ctx::Endian::Big")]
         status: u32,
     },
+    #[declio(id = "0x84")]
+    CSReady {
+        #[declio(ctx = "ctx::Endian::Big")]
+        status: u8,
+    },
+    #[declio(id = "0x85")]
+    SCMessage { // TODO: test if MessagePacket works both ways
+        #[declio(ctx = "ctx::Endian::Big")]
+        message_len: u16,
+        #[declio(with = "util::utf8", ctx = "ctx::Len((*message_len).into())")]
+        message: String,
+    },
+    #[declio(id = "0x86")]
+    SCSetTime {
+        #[declio(ctx = "ctx::Endian::Big")]
+        time: u32,
+    },
     #[declio(id = "0x87")]
     SCStartGame {
         #[declio(ctx = "ctx::Endian::Big")]
         seed: u32,
-        unknown: [u8; 4],
+        #[declio(ctx = "ctx::Endian::Big")]
+        worldgen_version: u32,
         #[declio(ctx = "ctx::Endian::Big")]
         gamemode: u32,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -135,4 +153,419 @@ pub enum GamePacket {
         #[declio(ctx = "ctx::Endian::Big")]
         pos_z: f32,
     },
+    #[declio(id = "0x88")]
+    SCAddMob {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_type: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        rot_y: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        rot_x: f32,
+        metadata: u8, // This is wrong, but there is no metadata implementation yet
+    },
+    #[declio(id = "0x89")]
+    SCAddPlayer {
+        #[declio(ctx = "ctx::Endian::Big")]
+        client_id: i32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        username_len: u16,
+        #[declio(with = "util::utf8", ctx = "ctx::Len((*username_len).into())")]
+        username: String,
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        rot_y: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        rot_x: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        held_item_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        held_item_aux: u32,
+        metadata: u8
+    },
+    #[declio(id = "0x8a")]
+    SCRemovePlayer {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        client_id: i32,
+    },
+    #[declio(id = "0x8c")]
+    SCAddEntity {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_type: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        has_motion: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        speed_x: u32, // TODO: Mark as optional
+        #[declio(ctx = "ctx::Endian::Big")]
+        speed_y: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        speed_z: u32,
+    },
+    #[declio(id = "0x8d")]
+    SCRemoveEntity {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+    },
+    #[declio(id = "0x8e")]
+    SCAddItemEntity {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        item_id: u16,
+        #[declio(ctx = "ctx::Endian::Big")]
+        item_amount: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        item_data: u16,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        speed_x: i8, // Every other implementation/documentation has pitch yaw roll here, but I'm pretty sure all of them are wrong
+        #[declio(ctx = "ctx::Endian::Big")]
+        speed_y: i8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        speed_z: i8,
+    },
+    #[declio(id = "0x8f")]
+    SCTakeItemEntity {
+        #[declio(ctx = "ctx::Endian::Big")]
+        target: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+    },
+    #[declio(id = "0x90")]
+    SCMoveEntity {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: f32,
+    },
+    #[declio(id = "0x93")]
+    SCMoveEntityWithRotation {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        rot_y: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        rot_x: f32,
+    },
+    #[declio(id = "0x94")]
+    MovePlayer {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        rot_y: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        rot_x: f32,
+    },
+    #[declio(id = "0x95")]
+    PlaceBlock { // TODO: Figure out the direction. The MCPI way of changing blocks is weird
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        block_id: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        block_aux: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        face: u8,
+    },
+    #[declio(id = "0x96")]
+    RemoveBlock {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: u8,
+    },
+    #[declio(id = "0x97")]
+    UpdateBlock {
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        block_id: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        block_aux: u8,
+    },
+    #[declio(id = "0x98")]
+    AddPainting {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        direction: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        title_len: u16,
+        #[declio(with = "util::utf8", ctx = "ctx::Len((*title_len).into())")]
+        title: String,
+    },
+    // ExplodePacket
+    #[declio(id = "0x9a")]
+    LevelEvent {
+        #[declio(ctx = "ctx::Endian::Big")]
+        event_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        data: u32,
+    },
+    #[declio(id = "0x9b")]
+    TileEvent {
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        case1: u32, // TODO: Reverse engineer what this is
+        #[declio(ctx = "ctx::Endian::Big")]
+        case2: u32,
+    },
+    #[declio(id = "0x9c")]
+    EntityEvent {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        event: u8, // TODO: Reverse engineer what this is
+    },
+    #[declio(id = "0x9d")]
+    RequestChunk {
+        #[declio(ctx = "ctx::Endian::Big")]
+        index_x: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        index_z: u32,
+    },
+    #[declio(id = "0x9e")]
+    ChunkDataPacket {
+        #[declio(ctx = "ctx::Endian::Big")]
+        index_x: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        index_z: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        chunk_data: u8, // The format is a bit confusing, probably needs a custom datatype to en/decode
+        // Rust doesnt let me compile [u8; 49408], so this is u8 for now
+    },
+    // PlayerEquipmentPacket
+    #[declio(id = "0xa0")]
+    PlayerArmorEquipment {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        slot0: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        slot1: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        slot2: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        slot3: u8,
+    },
+    #[declio(id = "0xa1")]
+    Interact {
+        #[declio(ctx = "ctx::Endian::Big")]
+        action: u8, // TODO: Reverse engineer what this is
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        target: u32,
+    },
+    // UseItemPacket
+    #[declio(id = "0xa3")]
+    PlayerAction {
+        #[declio(ctx = "ctx::Endian::Big")]
+        action: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        face: u32, // A byte could have been enough here since there are only 6 faces, damn you mojank!
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+    },
+    #[declio(id = "0xa5")]
+    HurtArmor {
+        #[declio(ctx = "ctx::Endian::Big")]
+        health: u8,
+    },
+    #[declio(id = "0xa6")]
+    SetEntityData {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        metadata: u8
+    },
+    #[declio(id = "0xa7")]
+    SetEntityMotion {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        speed_x: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        speed_y: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        speed_z: u32,
+    },
+    #[declio(id = "0xa8")]
+    SetHealth {
+        #[declio(ctx = "ctx::Endian::Big")]
+        health: u8,
+    },
+    #[declio(id = "0xa9")]
+    SetSpawnPosition {
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: u8,
+    },
+    #[declio(id = "0xaa")]
+    Animate {
+        #[declio(ctx = "ctx::Endian::Big")]
+        action: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+    },
+    #[declio(id = "0xab")]
+    Respawn {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: f32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: f32,
+    },
+    // SendInventoryPacket
+    #[declio(id = "0xad")]
+    DropItem {
+        #[declio(ctx = "ctx::Endian::Big")]
+        entity_id: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        is_death: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        item_id: u16,
+        #[declio(ctx = "ctx::Endian::Big")]
+        item_amount: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        item_data: u16,
+    },
+    #[declio(id = "0xae")]
+    ContainerOpen {
+        #[declio(ctx = "ctx::Endian::Big")]
+        window_id: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        window_type: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        slot: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        title_len: u16, // TODO: Test if the title actually controls anything
+        #[declio(with = "util::utf8", ctx = "ctx::Len((*title_len).into())")]
+        title: String,
+    },
+    #[declio(id = "0xaf")]
+    ContainerClose {
+        #[declio(ctx = "ctx::Endian::Big")]
+        window_id: u8,
+    },
+    // ContainerSetSlotPacket
+    #[declio(id = "0xb1")]
+    ContainerSetData {
+        #[declio(ctx = "ctx::Endian::Big")]
+        window_id: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        property: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        value: u32,
+    },
+    // ContainerSetContentPacket
+    // ContainerAckPacket
+    #[declio(id = "0xb4")]
+    Chat {
+        #[declio(ctx = "ctx::Endian::Big")]
+        message_len: u16,
+        #[declio(with = "util::utf8", ctx = "ctx::Len((*message_len).into())")]
+        message: String,
+    },
+    #[declio(id = "0xb5")]
+    SignUpdate {
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_x: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_y: u8,
+        #[declio(ctx = "ctx::Endian::Big")]
+        pos_z: u32,
+        #[declio(ctx = "ctx::Endian::Big")]
+        lines_len: u16,
+        #[declio(with = "util::utf8", ctx = "ctx::Len((*lines_len).into())")]
+        lines: String,
+    },
+    // AdventureSettingsPacket
 }
