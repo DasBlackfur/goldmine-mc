@@ -7,6 +7,7 @@ use modded::{install_modded_require, module::goldmine_module};
 use parking_lot::Mutex;
 use registry::Registries;
 use tokio::sync::watch;
+use bimap::BiMap;
 
 pub mod blocks;
 pub mod constants;
@@ -27,6 +28,8 @@ pub struct Server {
     addr: SocketAddr,
     server_name: String,
     guid: u64,
+    connections: Arc<Mutex<BiMap<SocketAddr, u64>>>,
+    unique_connection_id: Arc<Mutex<u64>>,
 }
 
 impl Server {
@@ -52,6 +55,8 @@ impl Server {
             addr: addr.parse()?,
             server_name: "MCCPP;Demo;A GoldMineMC server!".to_owned(),
             guid: rand::random(),
+            connections: Arc::new(Mutex::new(BiMap::<SocketAddr, u64>::new())),
+            unique_connection_id: Arc::new(Mutex::new(0)),
         };
 
         {
