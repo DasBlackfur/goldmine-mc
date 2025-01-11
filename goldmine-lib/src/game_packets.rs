@@ -407,9 +407,7 @@ pub enum GamePacket {
         #[declio(ctx = "ctx::Endian::Big")]
         index_z: u32,
         #[declio(ctx = "ctx::Endian::Big")]
-        blocks: [u8, 32768],
-        #[declio(ctx = "ctx::Endian::Big")]
-        data: [u8, 16384],
+        chunk_data: [u8; 49408], // The format is a bit confusing, probably needs a custom datatype to en/decode
     }
     // PlayerEquipmentPacket
     #[declio(id = "0xa0")]
