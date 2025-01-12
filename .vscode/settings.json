@@ -1,7 +1,11 @@
 {
     "cSpell.words": [
+        "bimap",
         "declio",
         "gamemode",
+        "mlua",
+        "RAKNET",
+        "savestate",
         "worldgen"
     ]
 }

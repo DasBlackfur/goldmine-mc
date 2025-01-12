@@ -1,15 +1,9 @@
+#![allow(clippy::unused_unit)]
 use declio::{ctx, util, Decode, Encode};
 use mlua::UserData;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    constants::{MAGIC, NULL_BYTE},
-    game_packets::Encapsulation,
-    u24::u24,
-};
-
-//pub const MAGIC: [u8; 16] = 0x00ffff00fefefefefdfdfdfd12345678_u128.to_be_bytes();
-pub const RAKNET_VERSION: u8 = 120;
+use super::{constants::*, game_packets::Encapsulation, u24::u24};
 
 #[derive(Serialize, Deserialize, Debug, Encode, Decode)]
 #[declio(id_type = "u8")]
@@ -99,7 +93,7 @@ pub enum Packet {
 mod encapsulation {
     use declio::{Decode, Encode};
 
-    use crate::game_packets::Encapsulation;
+    use crate::protocol::game_packets::Encapsulation;
 
     pub fn encode<W>(
         encapsulated: &Vec<Encapsulation>,

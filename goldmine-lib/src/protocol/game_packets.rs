@@ -1,12 +1,8 @@
 use declio::{ctx, util, Decode, Encode};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    constants::{
-        HANDSHAKE_COOKIE, HANDSHAKE_DATA, HANDSHAKE_DOUBLE_NULL, HANDSHAKE_FLAGS, HANDSHAKE_UNKNOWN,
-    },
-    u24::u24,
-};
+use super::{constants::*, u24::u24};
+
 
 #[derive(Serialize, Deserialize, Debug, Encode, Decode)]
 #[declio(id_type = "u8")]
