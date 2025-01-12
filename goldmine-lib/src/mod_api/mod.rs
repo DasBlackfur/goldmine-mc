@@ -6,7 +6,6 @@
 // Packet listener -> function (packet, client, direction) -> packet|nil //game_packet.rs
 // Event listener -> function(event) -> event|nil
 
-
 // API
 // @goldmine/packets -> types, serialization, deserialization, sendPacket(packet, client_id)
 // @goldmine/entity -> position, rotation, getClientId(entity_id) -> client_id
@@ -17,7 +16,6 @@
 //                         getBlocks(attachment_type, chunk_x, chunk_z) -> Vec<(x,y,z)
 //                         getBlocks(attachment_type) -> Vec<(x,y,z)>
 //                         getEntities(attachment_type) -> Vec<entity_id>
-
 
 // Attachments
 // many-to-many entity_id <-> attachment_type

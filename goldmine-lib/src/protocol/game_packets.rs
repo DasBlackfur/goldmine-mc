@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 
 use super::{constants::*, u24::u24};
 
-
 #[derive(Serialize, Deserialize, Debug, Encode, Decode)]
 #[declio(id_type = "u8")]
 pub enum Encapsulation {
@@ -121,7 +120,8 @@ pub enum GamePacket {
         status: u8,
     },
     #[declio(id = "0x85")]
-    SCMessage { // TODO: test if MessagePacket works both ways
+    SCMessage {
+        // TODO: test if MessagePacket works both ways
         #[declio(ctx = "ctx::Endian::Big")]
         message_len: u16,
         #[declio(with = "util::utf8", ctx = "ctx::Len((*message_len).into())")]
@@ -191,7 +191,7 @@ pub enum GamePacket {
         held_item_id: u32,
         #[declio(ctx = "ctx::Endian::Big")]
         held_item_aux: u32,
-        metadata: u8
+        metadata: u8,
     },
     #[declio(id = "0x8a")]
     SCRemovePlayer {
@@ -298,7 +298,8 @@ pub enum GamePacket {
         rot_x: f32,
     },
     #[declio(id = "0x95")]
-    PlaceBlock { // TODO: Figure out the direction. The MCPI way of changing blocks is weird
+    PlaceBlock {
+        // TODO: Figure out the direction. The MCPI way of changing blocks is weird
         #[declio(ctx = "ctx::Endian::Big")]
         entity_id: u32,
         #[declio(ctx = "ctx::Endian::Big")]
@@ -404,7 +405,7 @@ pub enum GamePacket {
         index_z: u32,
         #[declio(ctx = "ctx::Endian::Big")]
         chunk_data: u8, // The format is a bit confusing, probably needs a custom datatype to en/decode
-        // Rust doesnt let me compile [u8; 49408], so this is u8 for now
+                        // Rust doesnt let me compile [u8; 49408], so this is u8 for now
     },
     // PlayerEquipmentPacket
     #[declio(id = "0xa0")]
@@ -454,7 +455,7 @@ pub enum GamePacket {
     SCSetEntityData {
         #[declio(ctx = "ctx::Endian::Big")]
         entity_id: u32,
-        metadata: u8
+        metadata: u8,
     },
     #[declio(id = "0xa7")]
     SCSetEntityMotion {

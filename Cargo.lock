@@ -164,14 +164,22 @@ version = "0.1.0"
 dependencies = [
  "bimap",
  "declio",
+ "many-to-many",
  "mlua",
  "serde",
  "serde_json",
+ "snafu",
 ]
 
 [[package]]
 name = "goldmine-server"
 version = "0.1.0"
+
+[[package]]
+name = "heck"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "home"
@@ -253,6 +261,12 @@ checksum = "02313a53daf1fae25e82f7e7ca56180b72d1f08c514426672877cd957298201c"
 dependencies = [
  "cc",
 ]
+
+[[package]]
+name = "many-to-many"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff2806c88ab7215e5077fbaaf21a9baaab9caa2abd7adf6c0f63b535ad747547"
 
 [[package]]
 name = "memchr"
@@ -472,6 +486,27 @@ name = "smallvec"
 version = "1.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
+
+[[package]]
+name = "snafu"
+version = "0.8.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "223891c85e2a29c3fe8fb900c1fae5e69c2e42415e3177752e8718475efa5019"
+dependencies = [
+ "snafu-derive",
+]
+
+[[package]]
+name = "snafu-derive"
+version = "0.8.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "03c3c6b7927ffe7ecaa769ee0e3994da3b8cafc8f444578982c83ecb161af917"
+dependencies = [
+ "heck",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.96",
+]
 
 [[package]]
 name = "strsim"
