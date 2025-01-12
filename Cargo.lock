@@ -166,6 +166,7 @@ dependencies = [
  "declio",
  "many-to-many",
  "mlua",
+ "parking_lot",
  "serde",
  "serde_json",
  "snafu",

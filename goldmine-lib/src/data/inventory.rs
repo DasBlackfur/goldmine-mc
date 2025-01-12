@@ -1,7 +1,3 @@
-use std::collections::HashMap;
-
-pub type Inventories = HashMap<u32, Inventory>;
-
 pub type Inventory = Vec<Item>;
 
 pub struct Item {

@@ -21,6 +21,10 @@ pub struct AttachmentStorage {
 }
 
 impl AttachmentStorage {
+    pub fn set_attachment_id_to_name(&mut self, id: u32, name: String) {
+        self.attachment_type_id_to_name.insert(id, name);
+    }
+
     pub fn get_attachment_name_by_id(&self, attachment_type: u32) -> Option<&str> {
         self.attachment_type_id_to_name
             .get_by_left(&attachment_type)
@@ -63,6 +67,17 @@ impl AttachmentStorage {
             .copied()
     }
 
+    pub fn set_attachment_by_block(
+        &mut self,
+        block_pos: (u32, u8, u32),
+        attachment_type: u32,
+        attachment_id: u32,
+    ) {
+        self.block_to_id
+            .insert((block_pos, attachment_type), attachment_id);
+        self.block_to_type.insert(block_pos, attachment_id);
+    }
+
     pub fn get_attachment_by_block_type(
         &self,
         block_id: u8,
@@ -74,10 +89,34 @@ impl AttachmentStorage {
             .copied()
     }
 
+    pub fn set_attachment_by_block_type(
+        &mut self,
+        block_id: u8,
+        block_aux: u8,
+        attachment_type: u32,
+        attachment_id: u32,
+    ) {
+        self.block_type_to_id
+            .insert(((block_id, block_aux), attachment_type), attachment_id);
+        self.block_type_to_type
+            .insert((block_id, block_aux), attachment_type);
+    }
+
     pub fn get_attachment_by_entity(&self, entity_id: u32, attachment_type: u32) -> Option<u32> {
         self.entity_to_id
             .get_by_left(&(entity_id, attachment_type))
             .copied()
+    }
+
+    pub fn set_attachment_by_entity(
+        &mut self,
+        entity_id: u32,
+        attachment_type: u32,
+        attachment_id: u32,
+    ) {
+        self.entity_to_id
+            .insert((entity_id, attachment_type), attachment_id);
+        self.entity_to_type.insert(entity_id, attachment_type);
     }
 
     pub fn get_attachment_by_entity_type(
@@ -88,6 +127,18 @@ impl AttachmentStorage {
         self.entity_type_to_id
             .get_by_left(&(entity_type, attachment_type))
             .copied()
+    }
+
+    pub fn set_attachment_by_entity_type(
+        &mut self,
+        entity_type: u32,
+        attachment_type: u32,
+        attachment_id: u32,
+    ) {
+        self.entity_type_to_id
+            .insert((entity_type, attachment_type), attachment_id);
+        self.entity_type_to_type
+            .insert(entity_type, attachment_type);
     }
 
     pub fn get_attachment_data(&self, attachment_id: u32) -> &Value {

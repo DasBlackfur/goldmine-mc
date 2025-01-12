@@ -1,12 +1,19 @@
+use crate::error::{LuaInitGlobalSnafu, LuaInitSnafu, Result};
+
 // Registry
 // add(String, V) -> add(String, V, priority: 0)
 // add(String, V, priority: i8)
 
+use mlua::Lua;
+use snafu::ResultExt;
+
 // Raw packet listener -> function (packet, client, direction) -> packet|nil //packet.rs
 // Packet listener -> function (packet, client, direction) -> packet|nil //game_packet.rs
 // Event listener -> function(event) -> event|nil
+pub mod registry;
 
 // API
+// @goldmine -> server info
 // @goldmine/packets -> types, serialization, deserialization, sendPacket(packet, client_id)
 // @goldmine/entity -> position, rotation, getClientId(entity_id) -> client_id
 // @goldmine/world -> blocks, entities
@@ -16,6 +23,7 @@
 //                         getBlocks(attachment_type, chunk_x, chunk_z) -> Vec<(x,y,z)
 //                         getBlocks(attachment_type) -> Vec<(x,y,z)>
 //                         getEntities(attachment_type) -> Vec<entity_id>
+pub mod module;
 
 // Attachments
 // many-to-many entity_id <-> attachment_type
@@ -31,3 +39,16 @@
 // many-to-many -> sql table
 // BiMap -> sql table
 // HashMap -> sql table -> |attachment_id|string|
+
+pub mod require;
+
+pub fn init_lua(lua: &Lua) -> Result<()> {
+    lua.globals()
+        .set(
+            "goldmine",
+            module::goldmine_module(lua).context(LuaInitSnafu)?,
+        )
+        .context(LuaInitGlobalSnafu)?;
+
+    Ok(())
+}

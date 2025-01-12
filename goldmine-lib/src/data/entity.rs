@@ -1,10 +1,4 @@
-use std::collections::HashMap;
-
-use bimap::BiMap;
-
 use super::Vec3;
-
-pub type Entities = HashMap<u32, Entity>;
 
 pub struct Entity {
     pub id: u32,
@@ -12,5 +6,3 @@ pub struct Entity {
     pub pos: Vec3,
     pub rot: Vec3,
 }
-
-pub type EntityAttachment = BiMap<u32, u32>;
