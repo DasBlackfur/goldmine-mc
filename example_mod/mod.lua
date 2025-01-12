@@ -1,7 +1,12 @@
 local gm = require("@goldmine")
 
-local function listener(packet)
-    ---print(packet:toString())
+local function listener(packet, is_inbound, connection_id)
+    if is_inbound then
+        print("C>S", connection_id, packet:toString())
+    else
+        print("S>C", connection_id, packet:toString())
+    end
+
     return packet
 end
 

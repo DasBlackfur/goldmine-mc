@@ -33,10 +33,31 @@ pub async fn packet_listener(server: Server, _sender: Sender<String>) -> Result<
     }
 }
 
+fn get_connection_id(server: &Server, sender_addr: &SocketAddr) -> Result<u64> {
+    let mut connections = server.connections.lock();
+    let connection_id : u64;
+    if !connections.contains_left(&sender_addr) {
+        let mut counter = server.unique_connection_id.lock();
+        connection_id = *counter;
+        *counter += 1;
+        //println!("New connection id {}", connection_id);
+        connections.insert(*sender_addr, connection_id);
+    } else {
+        if let Some(id) = connections.get_by_left(&sender_addr) {
+            connection_id = *id;
+            //println!("Existing connection id {}", connection_id);
+        } else {
+            panic!("This should never execute. What did you do?!?");
+        }
+    }
+    Ok(connection_id)
+}
+
 async fn listener_loop(socket: &UdpSocket, buffer: &mut Vec<u8>, server: &Server) -> Result<()> {
     let (len, sender_addr) = socket.recv_buf_from(buffer).await?;
     if let SocketAddr::V4(socket_addr) = sender_addr {
-        let packet = receive_packet(&buffer[..len], server)?;
+        let connection_id : u64 = get_connection_id(server, &sender_addr)?;
+        let packet = receive_packet(&buffer[..len], server, connection_id)?;
         if let Packet::Custom {
             count,
             encapsulated: _,
@@ -45,7 +66,7 @@ async fn listener_loop(socket: &UdpSocket, buffer: &mut Vec<u8>, server: &Server
             send_packet(
                 buffer,
                 socket,
-                sender_addr,
+                connection_id,
                 Packet::ACK {
                     count: 1,
                     single_value: true,
@@ -58,7 +79,7 @@ async fn listener_loop(socket: &UdpSocket, buffer: &mut Vec<u8>, server: &Server
         }
         if let Some(return_packets) = handle_packet(packet, server, &socket_addr)? {
             for return_packet in return_packets {
-                send_packet(buffer, socket, sender_addr, return_packet, server).await?;
+                send_packet(buffer, socket, connection_id, return_packet, server).await?;
             }
         }
         Ok(())
@@ -67,33 +88,38 @@ async fn listener_loop(socket: &UdpSocket, buffer: &mut Vec<u8>, server: &Server
     }
 }
 
-fn receive_packet(mut buffer: &[u8], server: &Server) -> Result<Packet> {
+fn receive_packet(mut buffer: &[u8], server: &Server, connection_id: u64) -> Result<Packet> {
     //println!("IN:  {:x?}", &buffer);
     let mut packet = Packet::decode((), &mut buffer)?;
-    packet = execute_pl_callbacks(packet, server)?;
+    packet = execute_pl_callbacks(packet, server, true, connection_id)?;
     Ok(packet)
 }
 
 async fn send_packet(
     buffer: &mut Vec<u8>,
     socket: &UdpSocket,
-    addr: SocketAddr,
+    connection_id: u64,
     mut packet: Packet,
     server: &Server,
 ) -> Result<()> {
-    packet = execute_pl_callbacks(packet, server)?;
-    buffer.clear();
-    packet.encode((), buffer)?;
-    //println!("OUT: {:x?}", &buffer);
-    socket.send_to(buffer, addr).await?;
-    Ok(())
+    if let Some(addr) = server.connections.lock().get_by_right(&connection_id) {
+        packet = execute_pl_callbacks(packet, server, false, connection_id)?;
+        buffer.clear();
+        packet.encode((), buffer)?;
+        //println!("OUT: {:x?}", &buffer);
+        socket.send_to(buffer, addr).await?;
+        Ok(())
+    } else {
+        panic!("Unknown connection_id {}", connection_id);
+    }
+    
 }
 
-fn execute_pl_callbacks(mut packet: Packet, server: &Server) -> Result<Packet> {
+fn execute_pl_callbacks(mut packet: Packet, server: &Server, inbound: bool, connection_id: u64) -> Result<Packet> {
     for pl in server.registries.lock().pl_registry.values() {
         let lua_lock = server.lua.lock();
         let pl_callback: Function = lua_lock.registry_value(pl)?;
-        packet = lua_lock.from_value(pl_callback.call(lua_lock.create_ser_userdata(packet)?)?)?;
+        packet = lua_lock.from_value(pl_callback.call((lua_lock.create_ser_userdata(packet)?, inbound, connection_id))?)?;
     }
     Ok(packet)
 }
